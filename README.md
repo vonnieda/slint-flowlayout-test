@@ -1,6 +1,10 @@
-# Slint Rust Template
+# Slint Flow Layout Demo
 
-A template for a Rust application that's using [Slint](https://slint.rs/) for the user interface.
+A demonstration of a flow layout in Slint, as shown in the list of music genres
+below. Elements can be any Slint component that has a preferred-width
+preferred-height:
+
+<img src="demo.png">
 
 ## About
 

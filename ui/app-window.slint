@@ -1,90 +1,93 @@
 import { ScrollView, VerticalBox, HorizontalBox } from "std-widgets.slint";
 
-component Tag inherits Rectangle {
-    border-width: 2px;
-    border-color: white;
-    border-radius: 8px;
-    clip: true;
-    in-out property <string> text <=> text.text;
-    callback omg(length);
-
-    init => {
-        omg(self.preferred-width);
-    }
-
-    text := Text {
-        font-size: 1.2rem;
-    }
-}
-
-export struct TagListLayoutSpec {
+export struct FlowLayoutResults {
     xs: [length],
     ys: [length],
-    widths: [length],
     height: length,
+    widths: [length],
+    heights: [length],
 }
 
-export global TagListLayoutLogic {
-    callback calculate-positions(length, [string], [length]) -> TagListLayoutSpec;
+export global FlowLayoutLogic {
+    callback calculate-positions(width: length, num_elements: int, padding: length, spacing: length,
+        preferred-widths: [length], preferred-heights: [length]) -> FlowLayoutResults;
 }
 
-component TagList inherits Rectangle {
-    in-out property <[string]> tags: ["heavy metal", "power metal", "rock", 
-        "swing", "jazz", "extreme power metal",
-        "swing", "jazz", "extreme power metal",
-        "swing", "jazz", "extreme power metal",
-        "swing", "jazz", "extreme power metal",
-        "swing", "jazz", "extreme power metal",
-        "swing", "jazz", "extreme power metal",
-    ];
-    in-out property <[length]> preferred-widths;
-    in-out property <TagListLayoutSpec> layout;
-    height: layout.height;
+export component Tag inherits TouchArea {
+    in-out property <string> text <=> text.text;
+    in-out property <color> color;
 
-    init => {
-        debug("{}", self.preferred-widths);
-        layout = TagListLayoutLogic.calculate-positions(self.width, self.tags, self.preferred-widths);
+    Rectangle {
+        clip: true;
+        border-width: 2px;
+        border-color: white;
+        border-radius: 8px;
+        background: root.has-hover ? root.color.brighter(0.1) : root.color;
+        text := Text {
+            font-size: 1.2rem;
+        }
     }
+}
 
-    changed width => { layout = TagListLayoutLogic.calculate-positions(self.width, self.tags, self.preferred-widths) }
-
+export component TagList inherits Rectangle {
+    in-out property <[string]> tags: ["heavy metal", "rock", "yacht rock", "rap", "r&b", "funk", "phonk", "death metal", "soft rock", "jazz"];
+    property <[color]> colors: [#638d5d, #838d5d, #5d8a8d, #7f5d8d, #8d6b5d, #5d648d, #8d825d];
     for i in layout.widths.length: Tag {
+        color: colors[Math.mod(i, colors.length)];
+        text: tags[i];
+
+        // Start FlowLayout Support
         x: layout.xs[i];
         y: layout.ys[i];
         width: layout.widths[i];
-        height: 24px;
-        text: tags[i];
-        omg(preferred-width) => {
-            preferred-widths[i] = preferred-width;
+        height: layout.heights[i];
+        init => {
+            preferred-widths[i] = self.preferred-width;
+            preferred-heights[i] = self.preferred-height;
         }
+        // End FlowLayout Support
     }
 
-    pure function calculate-positions(width: length, tags: [string], preferred-widths: [length]) -> TagListLayoutSpec {
-        {}
+    // Start FlowLayout Support
+    in-out property <[length]> preferred-widths: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+    in-out property <[length]> preferred-heights: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+    in-out property <FlowLayoutResults> layout;
+    height: layout.height;
+
+    init => {
+        layout = FlowLayoutLogic.calculate-positions(self.width, self.tags.length, 
+            8px, 8px, self.preferred-widths, self.preferred-heights);
     }
+
+    changed width => { 
+        layout = FlowLayoutLogic.calculate-positions(self.width, self.tags.length, 
+            8px, 8px, self.preferred-widths, self.preferred-heights);
+    }
+    // End FlowLayout Support
 }
 
 export component AppWindow inherits Window {
-    min-width: 100px;
-    min-height: 800px;
+    preferred-width: 400px;
+    preferred-height: 400px;
 
     VerticalBox {
+        alignment: start;
+
         Text {
             text: "hi there";
             font-size: 3rem;
         }
 
         TagList {
-            background: red;
+            min-height: 10px;
+            tags: [
+                "heavy metal", "power metal", "rock", "swing", "jazz", "extreme hyper super power metal",
+            ];
         }
 
         Text {
             text: "hello there";
             font-size: 3rem;
-        }
-
-        Rectangle {
-            vertical-stretch: 2;
         }
     }
 }
