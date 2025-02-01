@@ -6,6 +6,21 @@ preferred-height:
 
 <img src="demo.png">
 
+## Known Issues
+
+On first render, until you adjust the width of the component, the tags do not
+lay out properly. Looking into this. I think it can be worked around with
+a timer or animation that just wiggles the component's width 1px.
+
+## Instructions
+
+See main.rs and app-window.slint. Replace Tag with your component. It does
+require the calculation code in main.rs, which you can attach anywhere in
+your app. 
+
+
+# Original Template Docs
+
 ## About
 
 This template helps you get started developing a Rust application with Slint as toolkit
