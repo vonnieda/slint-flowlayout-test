@@ -1,18 +1,90 @@
-import { Button, VerticalBox } from "std-widgets.slint";
+import { ScrollView, VerticalBox, HorizontalBox } from "std-widgets.slint";
+
+component Tag inherits Rectangle {
+    border-width: 2px;
+    border-color: white;
+    border-radius: 8px;
+    clip: true;
+    in-out property <string> text <=> text.text;
+    callback omg(length);
+
+    init => {
+        omg(self.preferred-width);
+    }
+
+    text := Text {
+        font-size: 1.2rem;
+    }
+}
+
+export struct TagListLayoutSpec {
+    xs: [length],
+    ys: [length],
+    widths: [length],
+    height: length,
+}
+
+export global TagListLayoutLogic {
+    callback calculate-positions(length, [string], [length]) -> TagListLayoutSpec;
+}
+
+component TagList inherits Rectangle {
+    in-out property <[string]> tags: ["heavy metal", "power metal", "rock", 
+        "swing", "jazz", "extreme power metal",
+        "swing", "jazz", "extreme power metal",
+        "swing", "jazz", "extreme power metal",
+        "swing", "jazz", "extreme power metal",
+        "swing", "jazz", "extreme power metal",
+        "swing", "jazz", "extreme power metal",
+    ];
+    in-out property <[length]> preferred-widths;
+    in-out property <TagListLayoutSpec> layout;
+    height: layout.height;
+
+    init => {
+        debug("{}", self.preferred-widths);
+        layout = TagListLayoutLogic.calculate-positions(self.width, self.tags, self.preferred-widths);
+    }
+
+    changed width => { layout = TagListLayoutLogic.calculate-positions(self.width, self.tags, self.preferred-widths) }
+
+    for i in layout.widths.length: Tag {
+        x: layout.xs[i];
+        y: layout.ys[i];
+        width: layout.widths[i];
+        height: 24px;
+        text: tags[i];
+        omg(preferred-width) => {
+            preferred-widths[i] = preferred-width;
+        }
+    }
+
+    pure function calculate-positions(width: length, tags: [string], preferred-widths: [length]) -> TagListLayoutSpec {
+        {}
+    }
+}
 
 export component AppWindow inherits Window {
-    in-out property <int> counter: 42;
-    callback request-increase-value();
+    min-width: 100px;
+    min-height: 800px;
+
     VerticalBox {
         Text {
-            text: "Counter: \{root.counter}";
+            text: "hi there";
+            font-size: 3rem;
         }
 
-        Button {
-            text: "Increase value";
-            clicked => {
-                root.request-increase-value();
-            }
+        TagList {
+            background: red;
+        }
+
+        Text {
+            text: "hello there";
+            font-size: 3rem;
+        }
+
+        Rectangle {
+            vertical-stretch: 2;
         }
     }
 }
