@@ -1,69 +1,80 @@
 import { ScrollView, VerticalBox, HorizontalBox } from "std-widgets.slint";
 
-export struct FlowLayoutResults {
-    xs: [length],
-    ys: [length],
+import { AboutSlint, Button, VerticalBox } from "std-widgets.slint";
+
+struct FlowLayoutItemInfo {
+    x: length,
+    y: length,
+    width: length,
     height: length,
-    widths: [length],
-    heights: [length],
 }
 
-export global FlowLayoutLogic {
-    callback calculate-positions(width: length, num_elements: int, padding: length, spacing: length,
-        preferred-widths: [length], preferred-heights: [length]) -> FlowLayoutResults;
-}
+component FlowLayout {
+    in-out property <[FlowLayoutItemInfo]> item-infos: [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {},];
+    in-out property <length> spacing: 8px;
+    in-out property <length> calculated-height: 8px;
+    preferred-height: self.calculated-height;
 
-export component Tag inherits TouchArea {
-    in-out property <string> text <=> text.text;
-    in-out property <color> color;
-
-    Rectangle {
-        clip: true;
-        border-width: 2px;
-        border-color: white;
-        border-radius: 8px;
-        background: root.has-hover ? root.color.brighter(0.1) : root.color;
-        text := Text {
-            font-size: 1.2rem;
-        }
-    }
-}
-
-export component TagList inherits Rectangle {
-    in-out property <[string]> tags: ["heavy metal", "rock", "yacht rock", "rap", "r&b", "funk", "phonk", "death metal", "soft rock", "jazz"];
-    property <[color]> colors: [#638d5d, #838d5d, #5d8a8d, #7f5d8d, #8d6b5d, #5d648d, #8d825d];
-    for i in layout.widths.length: Tag {
-        color: colors[Math.mod(i, colors.length)];
-        text: tags[i];
-
-        // Start FlowLayout Support
-        x: layout.xs[i];
-        y: layout.ys[i];
-        width: layout.widths[i];
-        height: layout.heights[i];
-        init => {
-            preferred-widths[i] = self.preferred-width;
-            preferred-heights[i] = self.preferred-height;
-        }
-        // End FlowLayout Support
+    changed width => {
+        self.do-layout(0);
+        self.do-layout(1);
+        self.do-layout(2);
+        self.do-layout(3);
+        self.do-layout(4);
+        self.do-layout(5);
+        self.do-layout(6);
+        self.do-layout(7);
+        self.do-layout(8);
+        self.do-layout(9);
     }
 
-    // Start FlowLayout Support
-    in-out property <[length]> preferred-widths: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
-    in-out property <[length]> preferred-heights: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
-    in-out property <FlowLayoutResults> layout;
-    height: layout.height;
+    function do-layout(index: int) {
+        if item-infos[index].width == 0 || item-infos[index].height == 0 {
+            return;
+        }
+        if index == 0 {
+            item-infos[index].x = 0;
+            item-infos[index].y = 0;
+        }
+        else if item-infos[index - 1].x + item-infos[index - 1].width + spacing + item-infos[index].width >= self.width {
+            item-infos[index].x = 0;
+            item-infos[index].y = item-infos[index - 1].y + item-infos[index - 1].height + spacing;
+        }
+        else {
+            item-infos[index].x = item-infos[index - 1].x + item-infos[index - 1].width + spacing;
+            item-infos[index].y = item-infos[index - 1].y;
+        }
+        self.calculated-height = item-infos[index].y + item-infos[index].height;
+    }
+
+    @children
+}
+
+component FlowLayoutItem {
+    in-out property <[FlowLayoutItemInfo]> item-infos;
+    in-out property <int> index;
+    x: item-infos[index].x;
+    y: item-infos[index].y;
 
     init => {
-        layout = FlowLayoutLogic.calculate-positions(self.width, self.tags.length, 
-            8px, 8px, self.preferred-widths, self.preferred-heights);
+        item-infos[index].width = self.width;
+        item-infos[index].height = self.height;
     }
 
-    changed width => { 
-        layout = FlowLayoutLogic.calculate-positions(self.width, self.tags.length, 
-            8px, 8px, self.preferred-widths, self.preferred-heights);
+    changed preferred-width => {
+        item-infos[index].width = self.width;
+        item-infos[index].height = self.height;
     }
-    // End FlowLayout Support
+
+    changed preferred-height => {
+        item-infos[index].width = self.width;
+        item-infos[index].height = self.height;
+    }
+
+    @children
+}
+
+component Thinger inherits Button {
 }
 
 export component AppWindow inherits Window {
@@ -78,11 +89,35 @@ export component AppWindow inherits Window {
             font-size: 3rem;
         }
 
-        TagList {
-            min-height: 10px;
-            tags: [
-                "heavy metal", "power metal", "rock", "swing", "jazz", "extreme hyper super power metal",
-            ];
+        FlowLayout {
+            FlowLayoutItem {
+                item-infos: parent.item-infos;
+                index: 0;
+                Thinger { 
+                    text: "hi there";
+                }
+            }
+            FlowLayoutItem {
+                item-infos: parent.item-infos;
+                index: 1;
+                Thinger { 
+                    text: "hi there how are you today?";
+                }
+            }
+            FlowLayoutItem {
+                item-infos: parent.item-infos;
+                index: 2;
+                Thinger { 
+                    text: "hi my friend";
+                }
+            }
+            FlowLayoutItem {
+                item-infos: parent.item-infos;
+                index: 3;
+                Thinger { 
+                    text: "wow.";
+                }
+            }
         }
 
         Text {
